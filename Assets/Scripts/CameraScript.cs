@@ -62,7 +62,6 @@ public class CameraScript : MonoBehaviour
     // Use this for initialization
     void Start ()
     {
-
         hBoundsMin = GetComponent<Camera> ().ViewportToWorldPoint (new Vector2 (0f, 0f));
         hBoundsMax = GetComponent<Camera> ().ViewportToWorldPoint (new Vector2 (1f, 0f));
         hBoundsMin.x += 0.3f;
@@ -212,7 +211,7 @@ public class CameraScript : MonoBehaviour
     void Sound (int dies, ulong delay)
     {
         GetComponent<AudioSource> ().clip = audio[dies];
-        GetComponent<AudioSource> ().Play (delay);
+        GetComponent<AudioSource> ().PlayDelayed (delay);
     }
     void SetSprite (int dies)
     {
@@ -225,9 +224,10 @@ public class CameraScript : MonoBehaviour
         if (GetComponent<AudioSource> ().isPlaying)
         {
           
-                if (GUI.Button (new Rect (Screen.width - 110, 10, 100, 100), "Stop Music")) ;
+                if (GUI.Button (new Rect (Screen.width - 110, 10, 100, 100), "Stop Music"))
                 {
-                    GetComponent<AudioSource> ().Stop ();
+               
+                GetComponent<AudioSource> ().Stop();
                     noMusic = true;
                 } 
         }
@@ -236,6 +236,7 @@ public class CameraScript : MonoBehaviour
             
                 if (GUI.Button (new Rect (Screen.width - 110, 10, 100, 100), "Play Music"))
                 {
+                
                     GetComponent<AudioSource> ().Play ();
                     noMusic = false;
                 }
@@ -245,7 +246,7 @@ public class CameraScript : MonoBehaviour
         {
             Rect rectos = new Rect (Screen.width/2-400,Screen.height/2-100,800,200);
             GUI.Label (rectos,"You Died");
-            if (GUI.Button (new Rect (Screen.width / 2 - 250, Screen.height / 2 + 120, 500, 200),"New Game"))
+            if (GUI.Button (new Rect (Screen.width / 2 - 250, Screen.height / 2 + 120, 500, 200),"Menu"))
             {
                 
                 start = true;

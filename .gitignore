@@ -1,0 +1,10 @@
+Temp/
+Library/
+SophieJump.Editor.csproj
+SophieJump.Plugins.csproj
+SophieJump.csproj
+SophieJump.sln
+Build/
+.vs/SophieJump/v14/.suo
+SophieJump.csproj.user
+.vs/

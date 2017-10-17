@@ -34,16 +34,22 @@ public class CameraScript : MonoBehaviour
     [SerializeField]
     private AudioClip[] audio;
     [SerializeField]
-    private Sprite[] sprite;
+    private Sprite[] spriteS;
+    [SerializeField]
+    private Sprite[] spriteEl;
+    [SerializeField]
+    private Sprite[] spriteEm;
     private Vector2 startpos;
     private Vector2 startposSpawn;
     private Vector2 currentpos;
     private Vector2 highpos;
     private bool dead;
     private bool start;
+    private bool character;
     private bool noMusic;
     private bool goRocket;
     private int cHigh;
+    private int person=0;
     private float high;
     private float bTime;
     private Vector2 hBoundsMin;
@@ -62,11 +68,10 @@ public class CameraScript : MonoBehaviour
     // Use this for initialization
     void Start ()
     {
-
         hBoundsMin = GetComponent<Camera> ().ViewportToWorldPoint (new Vector2 (0f, 0f));
         hBoundsMax = GetComponent<Camera> ().ViewportToWorldPoint (new Vector2 (1f, 0f));
-        hBoundsMin.x += 0.3f;
-        hBoundsMax.x -= 0.3f;
+       // hBoundsMin.x += 0.3f;
+        //hBoundsMax.x -= 0.3f;
         player.SendMessage ("SetLife", false);
         high = PlayerPrefs.GetFloat ("Highscore",0f);
         highpos = new Vector2 (0f, high);
@@ -82,7 +87,7 @@ public class CameraScript : MonoBehaviour
         if (player.transform.position.y >= border.transform.position.y)
         {
             currentpos.y += 0.1f;
-            transform.position = Vector3.Lerp(transform.position,currentpos,Time.deltaTime * 100f);
+            transform.position = Vector3.MoveTowards(transform.position,currentpos,Time.deltaTime * 5f);
         }
         // Player Tötung
       if (player.transform.position.y < borderDie.transform.position.y)
@@ -107,12 +112,28 @@ public class CameraScript : MonoBehaviour
             if (cHigh % 100 == 0)
             {
                 Instantiate (particles, new Vector2 (0f, player.transform.position.y), Quaternion.Euler (0, 0, 0));
+
                 if (!noMusic)
-                    Sound (2,0);
+                {
+                    GetComponent<AudioSource>().loop = false;
+                    Sound(2, 0);
+                    
+                }
             }
             if (cHigh % 1000 == 0)
                 Instantiate (particles2, new Vector2(0f,player.transform.position.y), Quaternion.Euler (0, 0, 0));
 
+        }
+        if (!start)
+        {
+            if (!noMusic)
+            {
+                if (!GetComponent<AudioSource>().isPlaying)
+                {
+                    GetComponent<AudioSource>().loop = true;
+                    Sound(0, 1);
+                }
+            }
         }
         // Instantiate new Stages
         if (player.transform.position.y > borderSpawn.transform.position.y)
@@ -152,7 +173,7 @@ public class CameraScript : MonoBehaviour
                 goRocket = false;
         }
         if (!goRocket)
-            SetSprite (0);
+            SetSprite (person,0);
     }
     void SetDead (bool died)
     {
@@ -169,7 +190,7 @@ public class CameraScript : MonoBehaviour
     void GoRocket ()
     {
 
-        SetSprite (1);
+        SetSprite (person,1);
         goRocket = true;
     }
 
@@ -197,11 +218,6 @@ public class CameraScript : MonoBehaviour
             Destroy (stageInstances[i]);
         }
         stageInstances.Clear();
-        if (!noMusic)
-        {
-            GetComponent<AudioSource> ().loop = true;
-            Sound (0, 1);
-        }
         for (float x = 0; x <= 7.5; x += 1.5f)
         {
             Vector2 spawn = new Vector2 (Random.Range (hBoundsMin.x, hBoundsMax.x),x);
@@ -212,11 +228,13 @@ public class CameraScript : MonoBehaviour
     void Sound (int dies, ulong delay)
     {
         GetComponent<AudioSource> ().clip = audio[dies];
-        GetComponent<AudioSource> ().Play (delay);
+        GetComponent<AudioSource> ().PlayDelayed (delay);
     }
-    void SetSprite (int dies)
+    void SetSprite (int person, int dies)
     {
-        player.GetComponent<SpriteRenderer> ().sprite = sprite[dies];
+        if (person==0) { player.GetComponent<SpriteRenderer>().sprite = spriteS[dies]; }
+        if (person == 1) { player.GetComponent<SpriteRenderer>().sprite = spriteEl[dies]; }
+        if (person == 2) { player.GetComponent<SpriteRenderer>().sprite = spriteEm[dies]; }
     }
     void OnGUI ()
     {
@@ -225,7 +243,7 @@ public class CameraScript : MonoBehaviour
         if (GetComponent<AudioSource> ().isPlaying)
         {
           
-                if (GUI.Button (new Rect (Screen.width - 110, 10, 100, 100), "Stop Music")) ;
+                if (GUI.Button (new Rect (Screen.width - 110, 10, 100, 100), "Stop Music")) 
                 {
                     GetComponent<AudioSource> ().Stop ();
                     noMusic = true;
@@ -253,6 +271,7 @@ public class CameraScript : MonoBehaviour
         }
         if (start)
         {
+            character = false;
             dead = false;
             if (GUI.Button (new Rect (Screen.width / 2 - Screen.width / 6, Screen.height / 2 - 205, Screen.width / 3, 100), "Start"))
             {
@@ -264,11 +283,29 @@ public class CameraScript : MonoBehaviour
             }
             if (GUI.Button (new Rect (Screen.width / 2 - Screen.width / 6, Screen.height / 2 - 85, Screen.width / 3, 100), ""))
             {
-
+                character = true;
             }
             if (GUI.Button (new Rect (Screen.width / 2 - Screen.width / 6, Screen.height / 2 + 35, Screen.width / 3, 100), "Quit"))
             {
                 Application.Quit ();
+            }
+        }
+        if (character) {
+            start = false;
+            if (GUI.Button(new Rect(Screen.width / 2 - Screen.width / 6, Screen.height / 2 - 205, Screen.width / 3, 100), "Sophie"))
+            {
+                person = 0;
+                start = true;
+            }
+            if (GUI.Button(new Rect(Screen.width / 2 - Screen.width / 6, Screen.height / 2 - 85, Screen.width / 3, 100), "Elida"))
+            {
+                person = 1;
+                start = true;
+            }
+            if (GUI.Button(new Rect(Screen.width / 2 - Screen.width / 6, Screen.height / 2 + 35, Screen.width / 3, 100), "Emilia"))
+            {
+                person = 2;
+                start = true;
             }
         }
 

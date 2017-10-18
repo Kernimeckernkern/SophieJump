@@ -39,6 +39,8 @@ public class CameraScript : MonoBehaviour
     private Sprite[] spriteEl;
     [SerializeField]
     private Sprite[] spriteEm;
+    [SerializeField]
+    private Texture[] texture;
     private Vector2 startpos;
     private Vector2 startposSpawn;
     private Vector2 currentpos;
@@ -87,7 +89,7 @@ public class CameraScript : MonoBehaviour
         if (player.transform.position.y >= border.transform.position.y)
         {
             currentpos.y += 0.1f;
-            transform.position = Vector3.MoveTowards(transform.position,currentpos,Time.deltaTime * 5f);
+            transform.position = Vector3.Lerp(transform.position,currentpos,Time.deltaTime * 100f);
         }
         // Player Tötung
       if (player.transform.position.y < borderDie.transform.position.y)
@@ -111,7 +113,7 @@ public class CameraScript : MonoBehaviour
             cHigh += 1;
             if (cHigh % 100 == 0)
             {
-                Instantiate (particles, new Vector2 (0f, player.transform.position.y), Quaternion.Euler (0, 0, 0));
+                Instantiate (particles, new Vector2 (0f, player.transform.position.y), Quaternion.identity);
 
                 if (!noMusic)
                 {
@@ -121,7 +123,7 @@ public class CameraScript : MonoBehaviour
                 }
             }
             if (cHigh % 1000 == 0)
-                Instantiate (particles2, new Vector2(0f,player.transform.position.y), Quaternion.Euler (0, 0, 0));
+                Instantiate (particles2, new Vector2(0f,player.transform.position.y), Quaternion.identity);
 
         }
         if (!start)
@@ -242,12 +244,10 @@ public class CameraScript : MonoBehaviour
         GUI.Label (new Rect(20,20,50,40),cHigh.ToString(),skin.GetStyle("High"));
         if (GetComponent<AudioSource> ().isPlaying)
         {
-          
-<<<<<<< HEAD
-                if (GUI.Button (new Rect (Screen.width - 110, 10, 100, 100), "Stop Music"))
-=======
-                if (GUI.Button (new Rect (Screen.width - 110, 10, 100, 100), "Stop Music")) 
->>>>>>> d6a5d7dddf55f3db2cd9049492075ccf6948492f
+        
+
+                if (GUI.Button (new Rect (Screen.width - 110, 10, 100, 100), texture[3])) 
+
                 {
                
                 GetComponent<AudioSource> ().Stop();
@@ -257,7 +257,7 @@ public class CameraScript : MonoBehaviour
         if (!GetComponent<AudioSource> ().isPlaying)
         {
             
-                if (GUI.Button (new Rect (Screen.width - 110, 10, 100, 100), "Play Music"))
+                if (GUI.Button (new Rect (Screen.width - 110, 10, 100, 100), texture[4]))
                 {
                 
                     GetComponent<AudioSource> ().Play ();
@@ -287,7 +287,7 @@ public class CameraScript : MonoBehaviour
                 NewGame ();
                 player.SendMessage ("SetLife", true);
             }
-            if (GUI.Button (new Rect (Screen.width / 2 - Screen.width / 6, Screen.height / 2 - 85, Screen.width / 3, 100), ""))
+            if (GUI.Button (new Rect (Screen.width / 2 - Screen.width / 6, Screen.height / 2 - 85, Screen.width / 3, 100), "Character"))
             {
                 character = true;
             }
@@ -298,17 +298,18 @@ public class CameraScript : MonoBehaviour
         }
         if (character) {
             start = false;
-            if (GUI.Button(new Rect(Screen.width / 2 - Screen.width / 6, Screen.height / 2 - 205, Screen.width / 3, 100), "Sophie"))
+            dead = false;
+            if (GUI.Button(new Rect(Screen.width / 2 - Screen.width / 12, Screen.height / 2 - 205, Screen.width / 6, 100), texture[0]))
             {
                 person = 0;
                 start = true;
             }
-            if (GUI.Button(new Rect(Screen.width / 2 - Screen.width / 6, Screen.height / 2 - 85, Screen.width / 3, 100), "Elida"))
+            if (GUI.Button(new Rect(Screen.width / 2 - Screen.width / 12, Screen.height / 2 - 85, Screen.width / 6, 100), texture[1]))
             {
                 person = 1;
                 start = true;
             }
-            if (GUI.Button(new Rect(Screen.width / 2 - Screen.width / 6, Screen.height / 2 + 35, Screen.width / 3, 100), "Emilia"))
+            if (GUI.Button(new Rect(Screen.width / 2 - Screen.width / 12, Screen.height / 2 + 35, Screen.width /6, 100), texture[2]))
             {
                 person = 2;
                 start = true;

@@ -7,13 +7,15 @@ public class Fotosession : MonoBehaviour {
 
     private bool amStart;
     private WebCamTexture front;
-    private Texture texture;
-    public RawImage raw;
+    private RawImage raw;
+    private Quaternion baseRotation;
+    private Vector2 hw;
+    private bool eMode=false;
 
 
     // Use this for initialization
     private void Start () {
-        texture = raw.texture;
+        raw = GetComponent<RawImage>();
         WebCamDevice[] devi = WebCamTexture.devices;
 
         if (devi.Length == 0)
@@ -27,7 +29,11 @@ public class Fotosession : MonoBehaviour {
         {
             if (devi[i].isFrontFacing)
             {
+                
+                hw = new Vector2(raw.rectTransform.rect.height, raw.rectTransform.rect.width);
                 front = new WebCamTexture(devi[i].name, 200, 200);
+                baseRotation = raw.transform.rotation;
+
 
             }
         }
@@ -35,15 +41,19 @@ public class Fotosession : MonoBehaviour {
             Debug.Log("no fronti");
             return;
         }
+       
         front.Play();
+#if UNITY_EDITOR
+    eMode = true;
+#endif
+#if UNITY_ANDROID //turns camera
+            if(!eMode){
+                                raw.transform.rotation = baseRotation * Quaternion.AngleAxis(front.videoRotationAngle, Vector3.back);
+                                raw.rectTransform.sizeDelta = hw;}
+#endif
         raw.texture = front;
         amStart = true;
-	}
+        //raw.transform.rotation = baseRotation * Quaternion.AngleAxis(front.videoRotationAngle, Vector3.back);
+    }
 	
-	// Update is called once per frame
-	void Update () {
-        if (!amStart)
-            return;
-
-	}
 }

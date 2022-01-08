@@ -8,3 +8,9 @@ Build/
 .vs/SophieJump/v14/.suo
 SophieJump.csproj.user
 .vs/
+ProjectSettings/PackageManagerSettings.asset
+ProjectSettings/PresetManager.asset
+ProjectSettings/VFXManager.asset
+ProjectSettings/VersionControlSettings.asset
+UserSettings/
+user.keystore

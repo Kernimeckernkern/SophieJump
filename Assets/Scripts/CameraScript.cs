@@ -46,11 +46,17 @@ public class CameraScript : MonoBehaviour
     [SerializeField]
     private GameObject options;
     [SerializeField]
+    private Sprite[][] spritesArray;
+    [SerializeField]
     private Sprite[] spriteS;
     [SerializeField]
     private Sprite[] spriteEl;
     [SerializeField]
     private Sprite[] spriteEm;
+    [SerializeField]
+    private GameObject Handy;
+    [SerializeField]
+    private Sprite[] spriteHandy;
     [SerializeField]
     private Sprite[] sprites;
     private Vector2 startpos;
@@ -212,6 +218,10 @@ public class CameraScript : MonoBehaviour
         person = who;
         characters.SetActive(false);
         begin.SetActive(true);
+        if (who == 3) { 
+            Handy.transform.parent.transform.position = player.transform.position;
+            Handy.transform.parent = player.transform;
+        }
 
     }
     private void LateUpdate()
@@ -265,6 +275,10 @@ public class CameraScript : MonoBehaviour
         if (person==0) { player.GetComponent<SpriteRenderer>().sprite = spriteS[dies]; }
         if (person == 1) { player.GetComponent<SpriteRenderer>().sprite = spriteEl[dies]; }
         if (person == 2) { player.GetComponent<SpriteRenderer>().sprite = spriteEm[dies]; }
+
+        if (person == 3) {
+                    player.GetComponent<SpriteRenderer>().sprite = spriteHandy[dies];
+        }
     }
   public void ActivateCharacters()
     {

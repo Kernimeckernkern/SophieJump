@@ -20,6 +20,7 @@ public class Player : MonoBehaviour {
     private bool alive = true;
     private bool eMode = false;
     private float ueSpeed;
+    private float velocityy;
 
     public float Speed
     {
@@ -45,6 +46,7 @@ public class Player : MonoBehaviour {
         Speed = PlayerPrefs.GetFloat("Speed");
         }
         slid.value = Speed;
+
     }
 
     // Update is called once per frame
@@ -62,6 +64,7 @@ public class Player : MonoBehaviour {
         }
         if (!eMode && !toggle.isOn)
         {
+            
             if(Input.touchCount > 0)
             {
 
@@ -138,6 +141,7 @@ public class Player : MonoBehaviour {
             ueSpeed = Speed;
             Speed = 0f;
             transform.position = transform.position;
+            velocityy = rb.velocity.y;
             rb.constraints = RigidbodyConstraints2D.FreezeAll;
         }
         else
@@ -145,6 +149,7 @@ public class Player : MonoBehaviour {
             Speed = slid.value;
             PlayerPrefs.SetFloat("Speed", slid.value);
             rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+            rb.velocity = new Vector2(0f,velocityy);
         }
     }
 

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CameraScript : MonoBehaviour
 {
@@ -18,6 +19,10 @@ public class CameraScript : MonoBehaviour
     [SerializeField]
     private GameObject highscore;
     [SerializeField]
+    private GameObject begin;
+    [SerializeField]
+    private GameObject die;
+    [SerializeField]
     private GameObject particles;
     [SerializeField]
     private GameObject particles2;
@@ -29,10 +34,17 @@ public class CameraScript : MonoBehaviour
     private GameObject newRocket;
     private GameObject MotherSpawn;
     [SerializeField]
-    private GUISkin skin;
-
+    private GameObject InGame;
+    [SerializeField]
+    private GameObject HSText;
+    [SerializeField]
+    private Button music;
     [SerializeField]
     private AudioClip[] audio;
+    [SerializeField]
+    private GameObject characters;
+    [SerializeField]
+    private GameObject options;
     [SerializeField]
     private Sprite[] spriteS;
     [SerializeField]
@@ -40,15 +52,13 @@ public class CameraScript : MonoBehaviour
     [SerializeField]
     private Sprite[] spriteEm;
     [SerializeField]
-    private Texture[] texture;
+    private Sprite[] sprites;
     private Vector2 startpos;
     private Vector2 startposSpawn;
     private Vector2 currentpos;
     private Vector2 highpos;
-    private bool dead;
-    private bool start;
-    private bool character;
-    private bool noMusic;
+
+    private bool noMusic = false;
     private bool goRocket;
     private int cHigh;
     private int person=0;
@@ -66,36 +76,39 @@ public class CameraScript : MonoBehaviour
     private List<GameObject> monsterInstances = new List<GameObject> ();
     private List<GameObject> stageInstances = new List<GameObject>();
     private List<GameObject> rocketInstances = new List<GameObject> ();
+    private Vector3 offset;
+    private Text sText;
 
     // Use this for initialization
     void Start ()
     {
         hBoundsMin = GetComponent<Camera> ().ViewportToWorldPoint (new Vector2 (0f, 0f));
         hBoundsMax = GetComponent<Camera> ().ViewportToWorldPoint (new Vector2 (1f, 0f));
-       // hBoundsMin.x += 0.3f;
+        // hBoundsMin.x += 0.3f;
         //hBoundsMax.x -= 0.3f;
+        offset = player.transform.position - transform.position;
         player.SendMessage ("SetLife", false);
         high = PlayerPrefs.GetFloat ("Highscore",0f);
         highpos = new Vector2 (0f, high);
         highscore.transform.position = highpos;
         startposSpawn = borderSpawn.transform.position;
-        start = true;
-        noMusic = false;
-        
+        sText = InGame.GetComponentInChildren<Text>();
+        int highInt = (int)PlayerPrefs.GetFloat("Highscore");
+        HSText.GetComponent<Text>().text = "Highscore: " + highInt.ToString();
+        if (PlayerPrefs.GetInt("Music") == 1)
+        {
+            noMusic = true;
+            music.GetComponent<Image>().sprite = sprites[1];
+        }
     }
     // Update is called once per frame
     void Update ()
-    {//Camera Verschiebung
-        if (player.transform.position.y >= border.transform.position.y)
-        {
-            currentpos.y += 0.1f;
-            transform.position = Vector3.Lerp(transform.position,currentpos,Time.deltaTime * 100f);
-        }
+    {
         // Player Tötung
       if (player.transform.position.y < borderDie.transform.position.y)
             {
-            dead = true;
             player.SendMessage ("SetLife",false);
+            player.SendMessage("DieOn");
             GetComponent<AudioSource> ().Stop ();
             GetComponent<AudioSource> ().loop = false;
         }
@@ -103,14 +116,17 @@ public class CameraScript : MonoBehaviour
         if (player.transform.position.y > high)
         {
             high += 0.1f;
-            highpos = new Vector2 (0f, high);
+            highpos = new Vector2 (0f, player.transform.position.y);
             highscore.transform.position = highpos;
-            PlayerPrefs.SetFloat ("Highscore",high);
+            PlayerPrefs.SetFloat ("Highscore",highpos.y);
+            int highInt = (int)PlayerPrefs.GetFloat("Highscore");
+            HSText.GetComponent<Text>().text = "Highscore: " + highInt.ToString();
         }
         //Set CurrentSscore and Particles
         if (player.transform.position.y > cHigh)
         {
             cHigh += 1;
+            sText.text = cHigh.ToString();
             if (cHigh % 100 == 0)
             {
                 Instantiate (particles, new Vector2 (0f, player.transform.position.y), Quaternion.identity);
@@ -126,7 +142,7 @@ public class CameraScript : MonoBehaviour
                 Instantiate (particles2, new Vector2(0f,player.transform.position.y), Quaternion.identity);
 
         }
-        if (!start)
+        if (!begin.activeSelf)
         {
             if (!noMusic)
             {
@@ -166,20 +182,16 @@ public class CameraScript : MonoBehaviour
             }
         }
     }
-    void FixedUpdate ()
+    void FixedUpdate()
     {
         if (goRocket)
         {
-            player.GetComponent<Rigidbody2D> ().AddForce (new Vector2 (0f, 5f)*5f);
+            player.GetComponent<Rigidbody2D>().AddForce(new Vector2(0f, 5f) * 5f);
             if (player.transform.position.y > newRocket.transform.position.y + 2f)
                 goRocket = false;
         }
         if (!goRocket)
-            SetSprite (person,0);
-    }
-    void SetDead (bool died)
-    {
-        dead = died;
+            SetSprite(person, 0);
     }
     void DestroyMonster ()
     {
@@ -195,11 +207,27 @@ public class CameraScript : MonoBehaviour
         SetSprite (person,1);
         goRocket = true;
     }
-
-    void NewGame ()
+    public void SetSpriteArray(int who)
     {
-        start = false;
-        dead = false;
+        person = who;
+        characters.SetActive(false);
+        begin.SetActive(true);
+
+    }
+    private void LateUpdate()
+    {
+        if (!options.activeSelf && player.transform.position.y >= border.transform.position.y)
+        {
+            currentpos.y += 10f;
+            Vector3 vec = new Vector3(0, player.transform.position.y, 0);
+            transform.position = vec - offset;
+        }
+    }
+   public void NewGame ()
+    {
+        begin.SetActive(false);
+        die.SetActive(false);
+        GetComponent<ButtonEvents>().DieText = true;
         transform.position = startpos;
         currentpos = startpos;
         borderSpawn.transform.position = startposSpawn;
@@ -238,83 +266,30 @@ public class CameraScript : MonoBehaviour
         if (person == 1) { player.GetComponent<SpriteRenderer>().sprite = spriteEl[dies]; }
         if (person == 2) { player.GetComponent<SpriteRenderer>().sprite = spriteEm[dies]; }
     }
-    void OnGUI ()
+  public void ActivateCharacters()
     {
-        GUI.skin = skin;
-        GUI.Label (new Rect(20,20,50,40),cHigh.ToString(),skin.GetStyle("High"));
-        if (GetComponent<AudioSource> ().isPlaying)
+        characters.SetActive(true);
+    }
+public void StartSound()
+    {
+        if (!noMusic)
+            Sound(1, 0);
+    }
+    public void ChangeMusic()
+    {
+        if (noMusic)
         {
-        
-
-                if (GUI.Button (new Rect (Screen.width - 110, 10, 100, 100), texture[3])) 
-
-                {
-               
-                GetComponent<AudioSource> ().Stop();
-                    noMusic = true;
-                } 
+            music.GetComponent<Image>().sprite = sprites[0];
+            noMusic = false;
+            PlayerPrefs.SetInt("Music",0);
         }
-        if (!GetComponent<AudioSource> ().isPlaying)
+        else
         {
-            
-                if (GUI.Button (new Rect (Screen.width - 110, 10, 100, 100), texture[4]))
-                {
-                
-                    GetComponent<AudioSource> ().Play ();
-                    noMusic = false;
-                }
-            
+            if (GetComponent<AudioSource>().isPlaying)
+                GetComponent<AudioSource>().Stop();
+            music.GetComponent<Image>().sprite = sprites[1];
+            noMusic = true;
+            PlayerPrefs.SetInt("Music", 1);
         }
-        if (dead)
-        {
-            Rect rectos = new Rect (Screen.width/2-400,Screen.height/2-100,800,200);
-            GUI.Label (rectos,"You Died");
-            if (GUI.Button (new Rect (Screen.width / 2 - 250, Screen.height / 2 + 120, 500, 200),"Menu"))
-            {
-                
-                start = true;
-            }
-        }
-        if (start)
-        {
-            character = false;
-            dead = false;
-            if (GUI.Button (new Rect (Screen.width / 2 - Screen.width / 6, Screen.height / 2 - 205, Screen.width / 3, 100), "Start"))
-            {
-               if (!noMusic)
-                     Sound (1,0);
-
-                NewGame ();
-                player.SendMessage ("SetLife", true);
-            }
-            if (GUI.Button (new Rect (Screen.width / 2 - Screen.width / 6, Screen.height / 2 - 85, Screen.width / 3, 100), "Character"))
-            {
-                character = true;
-            }
-            if (GUI.Button (new Rect (Screen.width / 2 - Screen.width / 6, Screen.height / 2 + 35, Screen.width / 3, 100), "Quit"))
-            {
-                Application.Quit ();
-            }
-        }
-        if (character) {
-            start = false;
-            dead = false;
-            if (GUI.Button(new Rect(Screen.width / 2 - Screen.width / 12, Screen.height / 2 - 205, Screen.width / 6, 100), texture[0]))
-            {
-                person = 0;
-                start = true;
-            }
-            if (GUI.Button(new Rect(Screen.width / 2 - Screen.width / 12, Screen.height / 2 - 85, Screen.width / 6, 100), texture[1]))
-            {
-                person = 1;
-                start = true;
-            }
-            if (GUI.Button(new Rect(Screen.width / 2 - Screen.width / 12, Screen.height / 2 + 35, Screen.width /6, 100), texture[2]))
-            {
-                person = 2;
-                start = true;
-            }
-        }
-
     }
 }

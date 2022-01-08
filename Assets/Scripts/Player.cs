@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.UI;
 
 public class Player : MonoBehaviour {
     private Vector2 input;
@@ -8,10 +9,31 @@ public class Player : MonoBehaviour {
     private float speed=10f;
     [SerializeField]
     private GameObject cam;
+    [SerializeField]
+    private GameObject die;
+    [SerializeField]
+    private Slider slid;
+    [SerializeField]
+    private Toggle toggle;
     private Vector2 boundsMin;
     private Vector2 boundsMax;
     private bool alive = true;
     private bool eMode = false;
+    private float ueSpeed;
+
+    public float Speed
+    {
+        get
+        {
+            return speed;
+        }
+
+        set
+        {
+            speed = value;
+        }
+    }
+
     // Use this for initialization
     void Start () {
         rb = GetComponent<Rigidbody2D> ();
@@ -19,6 +41,10 @@ public class Player : MonoBehaviour {
         boundsMax = cam.GetComponent<Camera> ().ViewportToWorldPoint (new Vector2(1f,0f));
         boundsMin.x += 0.3f;
         boundsMax.x -= 0.3f;
+        if (PlayerPrefs.HasKey("Speed")) {
+        Speed = PlayerPrefs.GetFloat("Speed");
+        }
+        slid.value = Speed;
     }
 
     // Update is called once per frame
@@ -29,10 +55,26 @@ public class Player : MonoBehaviour {
         eMode = true;
 #endif
 #if UNITY_ANDROID 
-        if (!eMode)
+        if (!eMode && toggle.isOn)
         {
 
             input = new Vector2 (Input.acceleration.x, 0f);
+        }
+        if (!eMode && !toggle.isOn)
+        {
+            if(Input.touchCount > 0)
+            {
+
+            if (Input.GetTouch(0).position.x < Screen.width / 2)
+                input = Vector2.left;
+            if (Input.GetTouch(0).position.x > Screen.width / 2)
+                input = Vector2.right;
+            }
+            else
+            {
+                //input = new Vector2(-input.x, 0f);
+                input = new Vector2(0f, 0f);
+            }
         }
 #endif
         if (rb.position.x > boundsMax.x || rb.position.x < boundsMin.x)
@@ -40,13 +82,13 @@ public class Player : MonoBehaviour {
             rb.velocity = new Vector2 (0f, rb.velocity.y);
            if (rb.position.x > boundsMax.x && input.x < 0 || rb.position.x < boundsMin.x && input.x > 0)
             {
-                rb.AddForce (input * speed*2); 
+                rb.velocity = new Vector2(input.x * Speed,rb.velocity.y); 
             }
         }
         else
        {
-            rb.AddForce (input * speed);
-      }
+            rb.velocity = new Vector2(input.x * Speed, rb.velocity.y);
+        }
 
     }
 
@@ -54,6 +96,11 @@ public class Player : MonoBehaviour {
     {
         alive = live;
         transform.position = new Vector2 (0,-1);
+    }
+    public void DieOn()
+    {
+        if (cam.GetComponent<ButtonEvents>().DieText && !alive)
+            die.SetActive(true);
     }
     private void OnCollisionEnter2D (Collision2D collision)
     {
@@ -75,7 +122,7 @@ public class Player : MonoBehaviour {
             else
             {
                 SetLife (false);
-                cam.SendMessage ("SetDead", true);
+                die.SetActive(true);
             }
         }
         if (other.gameObject.layer == LayerMask.NameToLayer ("Rocket"))
@@ -84,4 +131,21 @@ public class Player : MonoBehaviour {
           //  cam.SendMessage ("DestroyRocket");
         }
     }
+    public void Freeze(bool mode)
+    {
+        if (mode)
+        {
+            ueSpeed = Speed;
+            Speed = 0f;
+            transform.position = transform.position;
+            rb.constraints = RigidbodyConstraints2D.FreezeAll;
+        }
+        else
+        {
+            Speed = slid.value;
+            PlayerPrefs.SetFloat("Speed", slid.value);
+            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+        }
+    }
+
 }
